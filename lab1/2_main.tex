@@ -1,0 +1,102 @@
+\chapter{Метод наименьших квадратов}
+
+\section{Цель работы и исходные данные}
+Целью работы является оценивание параметров моделей линейной регрессии методом наименьших квадратов, анализ качества аппроксимации и проверка гипотез по данным варианта №25. Исходные данные находятся в файле \texttt{specifications/ident\_lab1\_vXX/ident\_lab1\_v25.mat} согласно методичке \cite{Ljung1998,Andrievsky2012}.
+
+\section{Краткие теоретические сведения}
+Рассматривается модель линейной регрессии
+\begin{equation}
+    y(k) = x_1(k)\,\theta_1 + x_2(k)\,\theta_2 + \dots + x_n(k)\,\theta_n + v(k),
+\end{equation}
+где $\theta$~--- вектор неизвестных параметров, $v$~--- аддитивная помеха. Оценка МНК:
+\begin{equation}
+    \hat{\theta}_{\scriptscriptstyle \text{LSQ}} = (X^{\mathsf T}X)^{-1}X^{\mathsf T}Y.
+\end{equation}
+Качество оценивается по сумме квадратов ошибок $J(\hat{\theta})=\lVert e\rVert_2^2$, где $e=Y-X\hat{\theta}$.
+
+\section{Задание 1}
+\subsection{Постановка}
+По данным структур \texttt{zad11} и \texttt{zad12} (поля \texttt{x1}, \texttt{x2}, \texttt{x3}, \texttt{y}) требуется: оценить параметры $\theta_1,\theta_2,\theta_3$; построить графики исходного сигнала $y$ и оценки $\hat y$; построить график ошибки $e$; сделать выводы о несмещенности и эффективности.
+
+\subsection{Методика}
+Формируется матрица регрессоров $X = [x_1\ x_2\ x_3]$ без свободного члена, параметры оцениваются формулой МНК. Реализация выполнена в скрипте \texttt{lab1/python/task1.py}. Результаты сохраняются в \texttt{lab1/images/task1/}.
+
+\subsection{Результаты}
+На рисунках представлены графики данных и аппроксимации:
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task1/zad11_fit.png}
+    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad11}.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task1/zad11_residuals.png}
+    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad11}.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task1/zad12_fit.png}
+    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad12}.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task1/zad12_residuals.png}
+    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad12}.}
+\end{figure}
+
+\subsection{Обсуждение}
+Оцененные параметры: для \texttt{zad11} $\hat\theta=[-2.014,\ 1.999,\ 3.999]^\mathsf T$, для \texttt{zad12} $\hat\theta=[-1.953,\ 2.233,\ 3.575]^\mathsf T$. Средние ошибок близки к нулю, спектрально выраженной корреляции с регрессорами не обнаружено, что указывает на несмещенность и приемлемую эффективность оценок.
+
+\section{Задание 2}
+\subsection{Постановка}
+Для наборов \texttt{zad21} и \texttt{zad22} (поля \texttt{T}, \texttt{V}) проверяются гипотезы: (H1) $V=bT+c$; (H2) $V=aT^2+bT+c$.
+
+\subsection{Методика}
+Параметры обеих моделей оцениваются МНК, строятся графики аппроксимаций и ошибок. Реализация в \texttt{lab1/python/task2.py}. Рисунки сохраняются в \texttt{lab1/images/task2/}.
+
+\subsection{Результаты}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task2/zad21_models.png}
+    \caption{Задание~2: данные \texttt{zad21} и аппроксимации H1, H2.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task2/zad21_residuals.png}
+    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad21}.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task2/zad22_models.png}
+    \caption{Задание~2: данные \texttt{zad22} и аппроксимации H1, H2.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task2/zad22_residuals.png}
+    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad22}.}
+\end{figure}
+
+\subsection{Выводы}
+Суммы квадратов ошибок: для \texttt{zad21} $\mathrm{SSE}_{H1}=8488.56$, $\mathrm{SSE}_{H2}=301.75$ (квадратичная модель значительно лучше); для \texttt{zad22} $\mathrm{SSE}_{H1}=277.88$, $\mathrm{SSE}_{H2}=256.33$ (обе модели сопоставимы, небольшое преимущество у H2).
+
+\section{Задание 3}
+\subsection{Постановка}
+Для наборов \texttt{zad31}, \texttt{zad32} дана функция \texttt{func}: $y=f(x,p_1,p_2)$, где требуется представить $f$ в виде линейной регрессии по параметрам $p_1,p_2$, оценить параметры и построить графики $y$ и $\hat y$.
+
+\subsection{Методика}
+Базисные функции выделяются из вида $f$; оценивание выполняется МНК. Реализация в \texttt{lab1/python/task3.py}. Рисунки сохраняются в \texttt{lab1/images/task3/}.
+
+\subsection{Результаты}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task3/zad31_fit.png}
+    \caption{Задание~3: данные и аппроксимация для \texttt{zad31}.}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics{images/task3/zad32_fit.png}
+    \caption{Задание~3: данные и аппроксимация для \texttt{zad32}.}
+\end{figure}
+
+\section{Заключение}
+По Заданию~1 оценки параметров корректно восстанавливают истинные коэффициенты, ошибка несмещённа. В Задании~2 для \texttt{zad21} предпочтительна квадратичная модель, для \texttt{zad22} различие невелико. В Задании~3 параметры восстановлены: для \texttt{zad31} $p_1\approx0.6$, $p_2\approx0.10$; для \texttt{zad32} $p_1\approx1.0$, $p_2\approx-1.5$; аппроксимации хорошо совпадают с экспериментальными данными.
