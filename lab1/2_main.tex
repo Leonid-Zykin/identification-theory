@@ -8,40 +8,83 @@
 \begin{equation}
     y(k) = x_1(k)\,\theta_1 + x_2(k)\,\theta_2 + \dots + x_n(k)\,\theta_n + v(k),
 \end{equation}
-где $\theta$~--- вектор неизвестных параметров, $v$~--- аддитивная помеха. Оценка МНК:
+где $\theta=[\theta_1,\theta_2,\ldots,\theta_n]^\mathsf T$~--- вектор неизвестных параметров, $v(k)$~--- аддитивная помеха. В матричной форме:
+\begin{equation}
+    Y = X\theta + V,
+\end{equation}
+где $Y=[y(1),y(2),\ldots,y(N)]^\mathsf T$, $V=[v(1),v(2),\ldots,v(N)]^\mathsf T$, а матрица регрессоров
+\begin{equation}
+    X = \begin{bmatrix}
+        x_1(1) & x_2(1) & \cdots & x_n(1) \\
+        x_1(2) & x_2(2) & \cdots & x_n(2) \\
+        \vdots & \vdots & \ddots & \vdots \\
+        x_1(N) & x_2(N) & \cdots & x_n(N)
+    \end{bmatrix}.
+\end{equation}
+Оценка МНК минимизирует функционал $J(\theta) = \lVert Y - X\theta\rVert_2^2$ и имеет вид:
 \begin{equation}
     \hat{\theta}_{\scriptscriptstyle \text{LSQ}} = (X^{\mathsf T}X)^{-1}X^{\mathsf T}Y.
 \end{equation}
-Качество оценивается по сумме квадратов ошибок $J(\hat{\theta})=\lVert e\rVert_2^2$, где $e=Y-X\hat{\theta}$.
+Вектор ошибок оценивания:
+\begin{equation}
+    e = Y - X\hat{\theta},
+\end{equation}
+а сумма квадратов ошибок:
+\begin{equation}
+    \mathrm{SSE} = \sum_{k=1}^{N} e^2(k) = e^\mathsf T e.
+\end{equation}
 
 \section{Задание 1}
 \subsection{Постановка}
 По данным структур \texttt{zad11} и \texttt{zad12} (поля \texttt{x1}, \texttt{x2}, \texttt{x3}, \texttt{y}) требуется: оценить параметры $\theta_1,\theta_2,\theta_3$; построить графики исходного сигнала $y$ и оценки $\hat y$; построить график ошибки $e$; сделать выводы о несмещенности и эффективности.
 
 \subsection{Методика}
-Формируется матрица регрессоров $X = [x_1\ x_2\ x_3]$ без свободного члена, параметры оцениваются формулой МНК. Реализация выполнена в скрипте \texttt{lab1/python/task1.py}. Результаты сохраняются в \texttt{lab1/images/task1/}.
+Формируется матрица регрессоров без свободного члена:
+\begin{equation}
+    X = \begin{bmatrix} x_1(1) & x_2(1) & x_3(1) \\ x_1(2) & x_2(2) & x_3(2) \\ \vdots & \vdots & \vdots \\ x_1(N) & x_2(N) & x_3(N) \end{bmatrix},
+\end{equation}
+где $N=1000$~--- количество измерений. Модель имеет вид:
+\begin{equation}
+    y(k) = x_1(k)\theta_1 + x_2(k)\theta_2 + x_3(k)\theta_3 + v(k),
+\end{equation}
+или в матричной форме $Y = X\theta + V$. Параметры оцениваются по формуле:
+\begin{equation}
+    \hat{\theta} = (X^{\mathsf T}X)^{-1}X^{\mathsf T}Y = \begin{bmatrix} \hat{\theta}_1 \\ \hat{\theta}_2 \\ \hat{\theta}_3 \end{bmatrix}.
+\end{equation}
+Оценка выходного сигнала:
+\begin{equation}
+    \hat{y}(k) = x_1(k)\hat{\theta}_1 + x_2(k)\hat{\theta}_2 + x_3(k)\hat{\theta}_3,
+\end{equation}
+а ошибка оценивания:
+\begin{equation}
+    e(k) = y(k) - \hat{y}(k).
+\end{equation}
 
 \subsection{Результаты}
-На рисунках представлены графики данных и аппроксимации:
+Результаты оценивания представлены на рисунках~\ref{fig:zad11_fit}--\ref{fig:zad12_res}:
 \begin{figure}[H]
     \centering
     \includegraphics{images/task1/zad11_fit.png}
-    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad11}.}
+    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad11}}
+    \label{fig:zad11_fit}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task1/zad11_residuals.png}
-    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad11}.}
+    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad11}}
+    \label{fig:zad11_res}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task1/zad12_fit.png}
-    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad12}.}
+    \caption{Задание~1: данные и оценка $\hat y$ для \texttt{zad12}}
+    \label{fig:zad12_fit}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task1/zad12_residuals.png}
-    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad12}.}
+    \caption{Задание~1: ошибка $e(k)$ для \texttt{zad12}}
+    \label{fig:zad12_res}
 \end{figure}
 
 \subsection{Обсуждение}
@@ -49,31 +92,63 @@
 
 \section{Задание 2}
 \subsection{Постановка}
-Для наборов \texttt{zad21} и \texttt{zad22} (поля \texttt{T}, \texttt{V}) проверяются гипотезы: (H1) $V=bT+c$; (H2) $V=aT^2+bT+c$.
+Для наборов \texttt{zad21} и \texttt{zad22} (поля \texttt{T}, \texttt{V}) проверяются две гипотезы:
+\begin{align}
+    \text{H1:}\quad & V = bT + c, \\
+    \text{H2:}\quad & V = aT^2 + bT + c,
+\end{align}
+где $T$~--- температура, $V$~--- объём, $a$, $b$, $c$~--- неизвестные параметры.
 
 \subsection{Методика}
-Параметры обеих моделей оцениваются МНК, строятся графики аппроксимаций и ошибок. Реализация в \texttt{lab1/python/task2.py}. Рисунки сохраняются в \texttt{lab1/images/task2/}.
+Для гипотезы H1 матрица регрессоров имеет вид:
+\begin{equation}
+    X_1 = \begin{bmatrix} T(1) & 1 \\ T(2) & 1 \\ \vdots & \vdots \\ T(N) & 1 \end{bmatrix},
+\end{equation}
+а вектор параметров $\theta_1 = [b,\ c]^\mathsf T$. Для гипотезы H2:
+\begin{equation}
+    X_2 = \begin{bmatrix} T^2(1) & T(1) & 1 \\ T^2(2) & T(2) & 1 \\ \vdots & \vdots & \vdots \\ T^2(N) & T(N) & 1 \end{bmatrix},
+\end{equation}
+с вектором параметров $\theta_2 = [a,\ b,\ c]^\mathsf T$. Оценки параметров вычисляются по формулам:
+\begin{align}
+    \hat{\theta}_1 &= (X_1^{\mathsf T}X_1)^{-1}X_1^{\mathsf T}V, \\
+    \hat{\theta}_2 &= (X_2^{\mathsf T}X_2)^{-1}X_2^{\mathsf T}V.
+\end{align}
+Оценки объёма:
+\begin{align}
+    \hat{V}_1(k) &= \hat{b}T(k) + \hat{c}, \\
+    \hat{V}_2(k) &= \hat{a}T^2(k) + \hat{b}T(k) + \hat{c},
+\end{align}
+а суммы квадратов ошибок:
+\begin{align}
+    \mathrm{SSE}_{H1} &= \sum_{k=1}^{N} (V(k) - \hat{V}_1(k))^2, \\
+    \mathrm{SSE}_{H2} &= \sum_{k=1}^{N} (V(k) - \hat{V}_2(k))^2.
+\end{align}
 
 \subsection{Результаты}
+Результаты аппроксимации представлены на рисунках~\ref{fig:zad21_models}--\ref{fig:zad22_res}:
 \begin{figure}[H]
     \centering
     \includegraphics{images/task2/zad21_models.png}
-    \caption{Задание~2: данные \texttt{zad21} и аппроксимации H1, H2.}
+    \caption{Задание~2: данные \texttt{zad21} и аппроксимации H1, H2}
+    \label{fig:zad21_models}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task2/zad21_residuals.png}
-    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad21}.}
+    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad21}}
+    \label{fig:zad21_res}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task2/zad22_models.png}
-    \caption{Задание~2: данные \texttt{zad22} и аппроксимации H1, H2.}
+    \caption{Задание~2: данные \texttt{zad22} и аппроксимации H1, H2}
+    \label{fig:zad22_models}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task2/zad22_residuals.png}
-    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad22}.}
+    \caption{Задание~2: ошибки аппроксимаций для \texttt{zad22}}
+    \label{fig:zad22_res}
 \end{figure}
 
 \subsection{Выводы}
@@ -81,22 +156,73 @@
 
 \section{Задание 3}
 \subsection{Постановка}
-Для наборов \texttt{zad31}, \texttt{zad32} дана функция \texttt{func}: $y=f(x,p_1,p_2)$, где требуется представить $f$ в виде линейной регрессии по параметрам $p_1,p_2$, оценить параметры и построить графики $y$ и $\hat y$.
+Для наборов \texttt{zad31}, \texttt{zad32} даны нелинейные функции:
+\begin{align}
+    \text{zad31:}\quad & y(x) = (7.0^{p_1}) \cdot (x^{p_2}), \\
+    \text{zad32:}\quad & y(x) = p_1 \cdot \exp(p_2 x),
+\end{align}
+где требуется представить эти функции в виде линейной регрессии по параметрам $p_1$, $p_2$, оценить параметры и построить графики $y$ и $\hat{y}$.
 
 \subsection{Методика}
-Базисные функции выделяются из вида $f$; оценивание выполняется МНК. Реализация в \texttt{lab1/python/task3.py}. Рисунки сохраняются в \texttt{lab1/images/task3/}.
+Для \texttt{zad31} функция $y(x) = (7.0^{p_1}) \cdot (x^{p_2})$ нелинейна по параметрам. Применяя логарифмирование:
+\begin{equation}
+    \ln y = p_1 \ln 7.0 + p_2 \ln x.
+\end{equation}
+Вводя обозначения $\tilde{y} = \ln y$, $\phi_1 = \ln 7.0$, $\phi_2 = \ln x$, получаем линейную модель:
+\begin{equation}
+    \tilde{y} = p_1 \phi_1 + p_2 \phi_2.
+\end{equation}
+Матрица регрессоров:
+\begin{equation}
+    \Phi = \begin{bmatrix} \ln 7.0 & \ln x(1) \\ \ln 7.0 & \ln x(2) \\ \vdots & \vdots \\ \ln 7.0 & \ln x(N) \end{bmatrix},
+\end{equation}
+вектор параметров $\theta = [p_1,\ p_2]^\mathsf T$, а оценка:
+\begin{equation}
+    \hat{\theta} = (\Phi^{\mathsf T}\Phi)^{-1}\Phi^{\mathsf T}\tilde{Y},
+\end{equation}
+где $\tilde{Y} = [\ln y(1),\ \ln y(2),\ \ldots,\ \ln y(N)]^\mathsf T$. После оценивания восстановление исходной функции:
+\begin{equation}
+    \hat{y}(x) = (7.0^{\hat{p}_1}) \cdot (x^{\hat{p}_2}).
+\end{equation}
+
+Для \texttt{zad32} функция $y(x) = p_1 \exp(p_2 x)$ также нелинейна. Логарифмируя:
+\begin{equation}
+    \ln y = \ln p_1 + p_2 x.
+\end{equation}
+Вводя $\tilde{y} = \ln y$, $\phi_1 = 1$, $\phi_2 = x$, получаем:
+\begin{equation}
+    \tilde{y} = \ln p_1 \cdot \phi_1 + p_2 \phi_2.
+\end{equation}
+Матрица регрессоров:
+\begin{equation}
+    \Phi = \begin{bmatrix} 1 & x(1) \\ 1 & x(2) \\ \vdots & \vdots \\ 1 & x(N) \end{bmatrix},
+\end{equation}
+оценка параметров:
+\begin{equation}
+    \begin{bmatrix} \ln \hat{p}_1 \\ \hat{p}_2 \end{bmatrix} = (\Phi^{\mathsf T}\Phi)^{-1}\Phi^{\mathsf T}\tilde{Y},
+\end{equation}
+откуда $\hat{p}_1 = \exp(\ln \hat{p}_1)$, а восстановленная функция:
+\begin{equation}
+    \hat{y}(x) = \hat{p}_1 \exp(\hat{p}_2 x).
+\end{equation}
 
 \subsection{Результаты}
+Результаты оценивания представлены на рисунках~\ref{fig:zad31_fit} и~\ref{fig:zad32_fit}:
 \begin{figure}[H]
     \centering
     \includegraphics{images/task3/zad31_fit.png}
-    \caption{Задание~3: данные и аппроксимация для \texttt{zad31}.}
+    \caption{Задание~3: данные и аппроксимация для \texttt{zad31}}
+    \label{fig:zad31_fit}
 \end{figure}
 \begin{figure}[H]
     \centering
     \includegraphics{images/task3/zad32_fit.png}
-    \caption{Задание~3: данные и аппроксимация для \texttt{zad32}.}
+    \caption{Задание~3: данные и аппроксимация для \texttt{zad32}}
+    \label{fig:zad32_fit}
 \end{figure}
+
+\subsection{Обсуждение}
+Оцененные параметры: для \texttt{zad31} $\hat{p}_1 \approx 0.6$, $\hat{p}_2 \approx 0.10$; для \texttt{zad32} $\hat{p}_1 \approx 1.0$, $\hat{p}_2 \approx -1.5$. Как видно из рисунков~\ref{fig:zad31_fit} и~\ref{fig:zad32_fit}, аппроксимации хорошо совпадают с экспериментальными данными, что подтверждает корректность преобразования нелинейных моделей к линейной регрессии.
 
 \section{Заключение}
 По Заданию~1 оценки параметров корректно восстанавливают истинные коэффициенты, ошибка несмещённа. В Задании~2 для \texttt{zad21} предпочтительна квадратичная модель, для \texttt{zad22} различие невелико. В Задании~3 параметры восстановлены: для \texttt{zad31} $p_1\approx0.6$, $p_2\approx0.10$; для \texttt{zad32} $p_1\approx1.0$, $p_2\approx-1.5$; аппроксимации хорошо совпадают с экспериментальными данными.
