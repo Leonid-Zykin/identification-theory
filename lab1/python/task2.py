@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,6 +26,24 @@ def fit_model(X: np.ndarray, V: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.
     return theta, V_hat, e, sse
 
 
+def residual_stats(e: np.ndarray, regressors: Dict[str, np.ndarray]) -> Dict[str, float]:
+    stats: Dict[str, float] = {
+        "mean_e": float(np.mean(e)),
+        "var_e": float(np.var(e, ddof=1)),
+    }
+    if e.size > 1:
+        e0 = e[:-1] - np.mean(e[:-1])
+        e1 = e[1:] - np.mean(e[1:])
+        denom = np.sqrt(np.sum(e0**2) * np.sum(e1**2))
+        stats["acf1_e"] = float(np.sum(e0 * e1) / denom) if denom > 0 else 0.0
+    for name, x in regressors.items():
+        xc = x - np.mean(x)
+        ec = e - np.mean(e)
+        denom = np.sqrt(np.sum(xc**2) * np.sum(ec**2))
+        stats[f"corr_e_{name}"] = float(np.sum(xc * ec) / denom) if denom > 0 else 0.0
+    return stats
+
+
 def process(block_name: str, images_dir: Path) -> None:
     d = load_variant_mat(25)[block_name]
     T = np.asarray(getattr(d, "T")).astype(float)
@@ -33,9 +51,11 @@ def process(block_name: str, images_dir: Path) -> None:
 
     X1 = poly_design_matrix(T, degree=1)
     t1, V1, e1, sse1 = fit_model(X1, V)
+    stats1 = residual_stats(e1, {"T": T})
 
     X2 = poly_design_matrix(T, degree=2)
     t2, V2, e2, sse2 = fit_model(X2, V)
+    stats2 = residual_stats(e2, {"T": T, "T2": T**2})
 
     # Plot models on data
     order = np.argsort(T)
@@ -67,6 +87,8 @@ def process(block_name: str, images_dir: Path) -> None:
     plt.close()
 
     print(block_name, "SSE H1=", sse1, "SSE H2=", sse2)
+    print("  diag H1:", stats1)
+    print("  diag H2:", stats2)
 
 
 def main() -> None:
