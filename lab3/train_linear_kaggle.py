@@ -2,18 +2,11 @@
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
-from sklearn.metrics import mean_squared_error
+from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import VarianceThreshold
 import warnings
 warnings.filterwarnings('ignore')
-
-def get_rmse(y_true, y_pred):
-    mse = np.mean((y_true - y_pred) ** 2)
-    rmse = np.sqrt(mse)
-    return rmse
 
 def remove_multicollinearity(X, threshold=0.95):
     corr_matrix = X.corr().abs()
@@ -25,7 +18,6 @@ def remove_multicollinearity(X, threshold=0.95):
                if any(upper_triangle[column] > threshold)]
     
     if to_drop:
-        print(f"  Удаляем {len(to_drop)} признаков с высокой корреляцией: {to_drop}")
         X = X.drop(columns=to_drop)
     
     return X, to_drop
@@ -65,7 +57,6 @@ def preprocess_data(df, is_train=True, onehot_encoder=None, scaler=None,
     df['floor_ratio_sq'] = df['floor_ratio'] ** 2
     df['area_per_room_sq'] = df['area_per_room'] ** 2
     
-    # Разделяем числовые и категориальные признаки
     numeric_cols = [
         'kitchen_area', 'bath_area', 'other_area', 'extra_area', 
         'extra_area_count', 'year', 'ceil_height', 'floor_max', 
@@ -108,14 +99,11 @@ def preprocess_data(df, is_train=True, onehot_encoder=None, scaler=None,
     important_numeric = ['total_area', 'rooms_count', 'year', 'floor', 'ceil_height']
     
     if is_train:
-        interaction_features = []
         for district_col in district_cols:
             for num_col in important_numeric:
                 if num_col in X_numeric.columns:
                     interaction_name = f'{district_col}_x_{num_col}'
                     X[interaction_name] = X_categorical_df[district_col] * X_numeric[num_col]
-                    interaction_features.append(interaction_name)
-        print(f"  Добавлено {len(interaction_features)} взаимодействий район × числовой признак")
     else:
         for district_col in district_cols:
             for num_col in important_numeric:
@@ -131,7 +119,6 @@ def preprocess_data(df, is_train=True, onehot_encoder=None, scaler=None,
             columns=X.columns[variance_selector.get_support()],
             index=X.index
         )
-        print(f"  После удаления низкодисперсных признаков: {X.shape[1]} признаков")
     else:
         if feature_names is None:
             raise ValueError("feature_names must be provided for test data")
@@ -167,133 +154,70 @@ def preprocess_data(df, is_train=True, onehot_encoder=None, scaler=None,
     else:
         return X_scaled, onehot_encoder, scaler, columns_to_drop, feature_names
 
-def train_and_evaluate():
-    print("Загрузка данных...")
-    data = pd.read_csv('/home/leonidas/projects/itmo/identification-theory/lab3/Archive2025/data.csv')
-    test_data = pd.read_csv('/home/leonidas/projects/itmo/identification-theory/lab3/Archive2025/test.csv')
-    
-    print(f"Размер обучающего датасета: {data.shape}")
-    print(f"Размер тестового датасета: {test_data.shape}")
-    
-    print("\nПредобработка данных...")
-    print("  - Создание новых признаков")
-    print("  - One-hot encoding категориальных признаков (булевы столбцы)")
-    print("  - Удаление мультиколлинеарных признаков")
-    X, y, onehot_encoder, scaler, columns_to_drop, feature_names = preprocess_data(data, is_train=True)
-    
-    print(f"\nИтоговое количество признаков: {X.shape[1]}")
-    
-    print("\nРазделение данных на train/test (70/30)...")
-    P = 0.70
-    m = len(X)
-    np.random.seed(42)
-    idx = np.random.permutation(m)
-    train_size = round(P * m)
-    
-    train_idx = idx[:train_size]
-    test_idx = idx[train_size:]
-    
-    X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
-    y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
-    
-    print(f"Размер обучающей выборки: {X_train.shape[0]}")
-    print(f"Размер тестовой выборки: {X_test.shape[0]}")
-    
-    models = {
-        'LinearRegression': LinearRegression(),
-        'Ridge (alpha=1.0)': Ridge(alpha=1.0, random_state=42),
-        'Ridge (alpha=10.0)': Ridge(alpha=10.0, random_state=42),
-        'Ridge (alpha=100.0)': Ridge(alpha=100.0, random_state=42),
-        'Lasso (alpha=1.0)': Lasso(alpha=1.0, random_state=42, max_iter=2000),
-        'Lasso (alpha=10.0)': Lasso(alpha=10.0, random_state=42, max_iter=2000),
-        'ElasticNet (alpha=1.0)': ElasticNet(alpha=1.0, l1_ratio=0.5, random_state=42, max_iter=2000),
-        'ElasticNet (alpha=10.0)': ElasticNet(alpha=10.0, l1_ratio=0.5, random_state=42, max_iter=2000),
-    }
-    
-    best_model = None
-    best_rmse = float('inf')
-    best_model_name = None
-    
-    print("\nОбучение моделей линейной регрессии...")
-    for name, model in models.items():
-        print(f"\nОбучение {name}...")
-        try:
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            rmse = get_rmse(y_test, y_pred)
-            
-            print(f"  RMSE на валидации: {rmse:,.2f}")
-            
-            if rmse < best_rmse:
-                best_rmse = rmse
-                best_model = model
-                best_model_name = name
-        except Exception as e:
-            print(f"  Ошибка при обучении: {e}")
-    
-    print(f"\n{'='*60}")
-    print(f"Лучшая модель: {best_model_name}")
-    print(f"RMSE на валидации: {best_rmse:,.2f}")
-    print(f"{'='*60}")
-    
-    if best_rmse > 500000:
-        print(f"\nRMSE ({best_rmse:,.2f}) больше целевого значения 500,000")
-        print("Попробуем улучшить модель с другими параметрами регуляризации...")
-        
-        alphas = [0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0]
-        for alpha in alphas:
-            try:
-                improved_model = Ridge(alpha=alpha, random_state=42)
-                improved_model.fit(X_train, y_train)
-                y_pred_improved = improved_model.predict(X_test)
-                rmse_improved = get_rmse(y_test, y_pred_improved)
-                
-                if rmse_improved < best_rmse:
-                    best_model = improved_model
-                    best_rmse = rmse_improved
-                    best_model_name = f"Ridge (alpha={alpha})"
-                    print(f"  Улучшение! Ridge (alpha={alpha}): RMSE = {rmse_improved:,.2f}")
-            except:
-                continue
-    
-    print(f"\nФинальная лучшая модель: {best_model_name}")
-    print(f"Финальный RMSE: {best_rmse:,.2f}")
-    
-    print("\nПредобработка тестового датасета...")
-    X_test_final, _, _, _, _ = preprocess_data(
-        test_data, 
-        is_train=False, 
-        onehot_encoder=onehot_encoder, 
-        scaler=scaler,
-        columns_to_drop=columns_to_drop,
-        feature_names=feature_names
-    )
-    
-    print("Делаем предсказания на тестовом датасете...")
-    predictions = best_model.predict(X_test_final)
-    
-    print("\nСоздание submission файла...")
-    submission = pd.DataFrame({
-        'index': np.arange(len(predictions)),
-        'price': predictions.astype(int)
-    })
-    
+# Определяем пути к данным (для Kaggle и локального запуска)
+import os
+import glob
+
+def find_file(filename, search_dirs=['/kaggle/input', '.', './']):
+    """Ищет файл в указанных директориях и поддиректориях"""
+    for search_dir in search_dirs:
+        if os.path.exists(search_dir):
+            # Ищем в корне директории
+            path = os.path.join(search_dir, filename)
+            if os.path.exists(path):
+                return path
+            # Ищем рекурсивно во всех поддиректориях
+            pattern = os.path.join(search_dir, '**', filename)
+            matches = glob.glob(pattern, recursive=True)
+            if matches:
+                return matches[0]
+    return None
+
+# Ищем файлы данных
+train_path = find_file('data.csv')
+test_path = find_file('test.csv')
+
+# Если не нашли, используем локальные пути (для тестирования)
+if train_path is None:
+    train_path = '/home/leonidas/projects/itmo/identification-theory/lab3/Archive2025/data.csv'
+if test_path is None:
+    test_path = '/home/leonidas/projects/itmo/identification-theory/lab3/Archive2025/test.csv'
+
+# Путь для сохранения submission
+if os.path.exists('/kaggle/working'):
+    output_path = '/kaggle/working/submission.csv'
+else:
     output_path = '/home/leonidas/projects/itmo/identification-theory/lab3/Archive2025/submission.csv'
-    submission.to_csv(output_path, index=False)
-    print(f"Submission файл сохранен: {output_path}")
-    print(f"Размер submission: {submission.shape}")
-    print(f"\nПервые 10 предсказаний:")
-    print(submission.head(10))
-    
-    print("\n" + "="*60)
-    print("Финальная оценка на полном обучающем датасете:")
-    y_train_pred = best_model.predict(X)
-    rmse_full = get_rmse(y, y_train_pred)
-    print(f"RMSE на полном датасете: {rmse_full:,.2f}")
-    print("="*60)
-    
-    return best_model, best_rmse, onehot_encoder, scaler
 
-if __name__ == '__main__':
-    train_and_evaluate()
+print("Загрузка данных...")
+data = pd.read_csv(train_path)
+test_data = pd.read_csv(test_path)
 
+print("Предобработка обучающих данных...")
+X, y, onehot_encoder, scaler, columns_to_drop, feature_names = preprocess_data(data, is_train=True)
+
+print("Обучение модели линейной регрессии...")
+model = LinearRegression()
+model.fit(X, y)
+
+print("Предобработка тестовых данных...")
+X_test, _, _, _, _ = preprocess_data(
+    test_data, 
+    is_train=False, 
+    onehot_encoder=onehot_encoder, 
+    scaler=scaler,
+    columns_to_drop=columns_to_drop,
+    feature_names=feature_names
+)
+
+print("Делаем предсказания...")
+predictions = model.predict(X_test)
+
+print("Создание submission файла...")
+submission = pd.DataFrame({
+    'index': np.arange(len(predictions)),
+    'price': predictions.astype(int)
+})
+
+submission.to_csv(output_path, index=False)
+print(f"Submission файл сохранен: {output_path}")
