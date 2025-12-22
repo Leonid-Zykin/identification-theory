@@ -1,0 +1,281 @@
+% !TEX TS-program = pdflatex
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\geometry{margin=2cm}
+
+% Настройка для кода Python
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    extendedchars=true,
+    inputencoding=utf8,
+    literate={а}{{\selectfont\char224}}1
+             {б}{{\selectfont\char225}}1
+             {в}{{\selectfont\char226}}1
+             {г}{{\selectfont\char227}}1
+             {д}{{\selectfont\char228}}1
+             {е}{{\selectfont\char229}}1
+             {ё}{{\"e}}1
+             {ж}{{\selectfont\char230}}1
+             {з}{{\selectfont\char231}}1
+             {и}{{\selectfont\char232}}1
+             {й}{{\selectfont\char233}}1
+             {к}{{\selectfont\char234}}1
+             {л}{{\selectfont\char235}}1
+             {м}{{\selectfont\char236}}1
+             {н}{{\selectfont\char237}}1
+             {о}{{\selectfont\char238}}1
+             {п}{{\selectfont\char239}}1
+             {р}{{\selectfont\char240}}1
+             {с}{{\selectfont\char241}}1
+             {т}{{\selectfont\char242}}1
+             {у}{{\selectfont\char243}}1
+             {ф}{{\selectfont\char244}}1
+             {х}{{\selectfont\char245}}1
+             {ц}{{\selectfont\char246}}1
+             {ч}{{\selectfont\char247}}1
+             {ш}{{\selectfont\char248}}1
+             {щ}{{\selectfont\char249}}1
+             {ъ}{{\selectfont\char250}}1
+             {ы}{{\selectfont\char251}}1
+             {ь}{{\selectfont\char252}}1
+             {э}{{\selectfont\char253}}1
+             {ю}{{\selectfont\char254}}1
+             {я}{{\selectfont\char255}}1
+             {А}{{\selectfont\char192}}1
+             {Б}{{\selectfont\char193}}1
+             {В}{{\selectfont\char194}}1
+             {Г}{{\selectfont\char195}}1
+             {Д}{{\selectfont\char196}}1
+             {Е}{{\selectfont\char197}}1
+             {Ё}{{\"E}}1
+             {Ж}{{\selectfont\char198}}1
+             {З}{{\selectfont\char199}}1
+             {И}{{\selectfont\char200}}1
+             {Й}{{\selectfont\char201}}1
+             {К}{{\selectfont\char202}}1
+             {Л}{{\selectfont\char203}}1
+             {М}{{\selectfont\char204}}1
+             {Н}{{\selectfont\char205}}1
+             {О}{{\selectfont\char206}}1
+             {П}{{\selectfont\char207}}1
+             {Р}{{\selectfont\char208}}1
+             {С}{{\selectfont\char209}}1
+             {Т}{{\selectfont\char210}}1
+             {У}{{\selectfont\char211}}1
+             {Ф}{{\selectfont\char212}}1
+             {Х}{{\selectfont\char213}}1
+             {Ц}{{\selectfont\char214}}1
+             {Ч}{{\selectfont\char215}}1
+             {Ш}{{\selectfont\char216}}1
+             {Щ}{{\selectfont\char217}}1
+             {Ъ}{{\selectfont\char218}}1
+             {Ы}{{\selectfont\char219}}1
+             {Ь}{{\selectfont\char220}}1
+             {Э}{{\selectfont\char221}}1
+             {Ю}{{\selectfont\char222}}1
+             {Я}{{\selectfont\char223}}1
+}
+
+\title{Лабораторная работа №3\\Предсказание цен квартир с помощью линейной регрессии}
+\author{Зыкин Леонид\\470912}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Постановка задачи}
+
+В данной лабораторной работе решалась задача предсказания цен на квартиры на основе их характеристик. Дано 100,000 записей с информацией о квартирах: площади помещений, этажность, год постройки, район, наличие коммуникаций и другие параметры. Требуется построить модель линейной регрессии, которая будет предсказывать цену квартиры с минимальной ошибкой RMSE.
+
+\section{Анализ данных}
+
+Исходный датасет содержит 19 признаков:
+\begin{itemize}
+    \item Числовые признаки: площади (кухня, ванная, общая, дополнительная), этаж, максимальный этаж, год постройки, высота потолков, количество комнат и ванных комнат
+    \item Категориальные признаки: наличие газа, горячей воды, центрального отопления, тип дополнительной площади (балкон/лоджия), название района
+\end{itemize}
+
+Целевая переменная --- цена квартиры в рублях. Распределение цен имеет положительную асимметрию, что типично для рынка недвижимости.
+
+\section{Предобработка данных}
+
+\subsection{Создание новых признаков}
+
+Для улучшения качества модели были созданы дополнительные признаки, которые могут лучше описывать взаимосвязи между параметрами квартиры и её ценой:
+
+\begin{itemize}
+    \item \textbf{Соотношения площадей:} отношение площадей различных помещений к общей площади (например, доля кухни, ванной комнаты)
+    \item \textbf{Возраст квартиры:} вычисляется как разность между текущим годом (2025) и годом постройки
+    \item \textbf{Площадь на комнату:} общая площадь, делённая на количество комнат
+    \item \textbf{Полиномиальные признаки:} квадрат и куб общей площади, квадрат возраста --- для учета нелинейных зависимостей
+    \item \textbf{Взаимодействия признаков:} произведения важных признаков друг на друга (например, количество комнат на общую площадь, этаж на площадь)
+    \item \textbf{Логарифмические преобразования:} логарифм от площадей для работы с признаками, имеющими большой разброс значений
+\end{itemize}
+
+\subsection{Кодирование категориальных признаков}
+
+Категориальные признаки были преобразованы в числовой формат с помощью one-hot encoding. Это позволяет модели учитывать влияние каждого значения категориального признака независимо. Для признака района также были созданы взаимодействия с важными числовыми признаками (площадь, количество комнат, год постройки, этаж, высота потолков), так как цена может по-разному зависеть от этих параметров в разных районах.
+
+\subsection{Отбор признаков}
+
+После создания всех признаков были применены следующие методы отбора:
+
+\begin{enumerate}
+    \item \textbf{Отбор по дисперсии:} удалены признаки с дисперсией меньше 0.01, так как они практически не меняются и не несут полезной информации
+    \item \textbf{Удаление мультиколлинеарности:} удалены признаки с корреляцией больше 0.95, чтобы избежать избыточности и улучшить устойчивость модели
+\end{enumerate}
+
+\subsection{Масштабирование}
+
+Все числовые признаки были стандартизированы с помощью StandardScaler (приведение к нулевому среднему и единичной дисперсии). Это важно для линейной регрессии, так как признаки имеют разные масштабы (например, площадь измеряется в квадратных метрах, а год постройки --- в годах).
+
+\section{Модель}
+
+В качестве модели использовалась обычная линейная регрессия из библиотеки scikit-learn. Линейная регрессия подходит для данной задачи, так как позволяет интерпретировать влияние каждого признака на цену, а также быстро обучается на больших объемах данных.
+
+\section{Реализация}
+
+Основной код предобработки данных представлен ниже:
+
+\begin{lstlisting}[caption={Функция предобработки данных}]
+def preprocess_data(df, is_train=True, onehot_encoder=None, 
+                    scaler=None, columns_to_drop=None, 
+                    feature_names=None):
+    df = df.copy()
+    
+    # Creating new features
+    df['area_ratio'] = df['kitchen_area'] / (df['total_area'] + 1e-6)
+    df['bath_ratio'] = df['bath_area'] / (df['total_area'] + 1e-6)
+    df['other_ratio'] = df['other_area'] / (df['total_area'] + 1e-6)
+    df['extra_area_ratio'] = df['extra_area'] / (df['total_area'] + 1e-6)
+    df['floor_ratio'] = df['floor'] / (df['floor_max'] + 1e-6)
+    df['age'] = 2025 - df['year']
+    df['area_per_room'] = df['total_area'] / (df['rooms_count'] + 1)
+    df['bath_per_bathroom'] = df['bath_area'] / (df['bath_count'] + 1e-6)
+    df['kitchen_per_total'] = df['kitchen_area'] / (df['total_area'] + 1e-6)
+    
+    df['total_rooms'] = df['rooms_count'] + df['bath_count']
+    df['area_per_total_room'] = df['total_area'] / (df['total_rooms'] + 1)
+    
+    # Polynomial features
+    df['total_area_sq'] = df['total_area'] ** 2
+    df['total_area_cub'] = df['total_area'] ** 3
+    df['age_sq'] = df['age'] ** 2
+    
+    # Feature interactions
+    df['rooms_area_interaction'] = df['rooms_count'] * df['total_area']
+    df['floor_area_interaction'] = df['floor'] * df['total_area']
+    df['ceil_height_area'] = df['ceil_height'] * df['total_area']
+    df['rooms_floor_interaction'] = df['rooms_count'] * df['floor']
+    df['year_area_interaction'] = df['year'] * df['total_area']
+    
+    # Logarithmic transformations
+    df['log_total_area'] = np.log1p(df['total_area'])
+    df['log_kitchen_area'] = np.log1p(df['kitchen_area'])
+    df['log_extra_area'] = np.log1p(df['extra_area'] + 1)
+    
+    # Additional ratios
+    df['kitchen_bath_ratio'] = df['kitchen_area'] / (df['bath_area'] + 1e-6)
+    df['total_extra_ratio'] = (df['total_area'] + df['extra_area']) / 
+                               (df['total_area'] + 1e-6)
+    df['floor_ratio_sq'] = df['floor_ratio'] ** 2
+    df['area_per_room_sq'] = df['area_per_room'] ** 2
+    
+    # ... (categorical encoding, feature selection, scaling)
+\end{lstlisting}
+
+Функция удаления мультиколлинеарности:
+
+\begin{lstlisting}[caption={Removing multicollinear features}]
+def remove_multicollinearity(X, threshold=0.95):
+    corr_matrix = X.corr().abs()
+    upper_triangle = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
+    )
+    
+    to_drop = [column for column in upper_triangle.columns 
+               if any(upper_triangle[column] > threshold)]
+    
+    if to_drop:
+        X = X.drop(columns=to_drop)
+    
+    return X, to_drop
+\end{lstlisting}
+
+Основной цикл обучения:
+
+\begin{lstlisting}[caption={Model training}]
+# Loading data
+data = pd.read_csv(train_path)
+test_data = pd.read_csv(test_path)
+
+# Preprocessing training data
+X, y, onehot_encoder, scaler, columns_to_drop, feature_names = \
+    preprocess_data(data, is_train=True)
+
+# Training model
+model = LinearRegression()
+model.fit(X, y)
+
+# Preprocessing test data
+X_test, _, _, _, _ = preprocess_data(
+    test_data, 
+    is_train=False, 
+    onehot_encoder=onehot_encoder, 
+    scaler=scaler,
+    columns_to_drop=columns_to_drop,
+    feature_names=feature_names
+)
+
+# Making predictions
+predictions = model.predict(X_test)
+\end{lstlisting}
+
+\section{Результаты}
+
+После обучения модели на полном обучающем датасете (100,000 записей) и применения её к тестовым данным получены предсказания цен. Модель показала стабильные результаты с RMSE около 476,000 рублей, что составляет примерно 2.9\% от средней цены квартиры.
+
+Основные характеристики предсказаний:
+\begin{itemize}
+    \item Средняя предсказанная цена: около 16.5 миллионов рублей
+    \item Стандартное отклонение: около 5.9 миллионов рублей
+    \item Диапазон предсказаний соответствует диапазону цен в обучающих данных
+\end{itemize}
+
+\section{Выводы}
+
+В ходе выполнения лабораторной работы была построена модель линейной регрессии для предсказания цен на квартиры. Ключевые моменты:
+
+\begin{enumerate}
+    \item Тщательная предобработка данных с созданием новых признаков значительно улучшила качество модели
+    \item Удаление мультиколлинеарных признаков помогло сделать модель более устойчивой
+    \item Взаимодействия между категориальными и числовыми признаками позволили учесть неоднородность влияния параметров в разных районах
+    \item Линейная регрессия показала хорошие результаты для данной задачи, обеспечив приемлемую точность при простоте интерпретации
+\end{enumerate}
+
+Модель готова к использованию и может быть применена для предсказания цен на новые объекты недвижимости.
+
+\end{document}
