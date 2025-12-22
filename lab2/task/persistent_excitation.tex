@@ -1,0 +1,155 @@
+% !TEX TS-program = pdflatex
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{geometry}
+\geometry{margin=2cm}
+
+\begin{document}
+
+\section*{Условие неисчезающего возбуждения: матричное неравенство}
+
+Рассматривается регрессионная модель
+\[
+    y(t) = \varphi^\top(t)\,\theta^\star + v(t),
+\]
+где $\varphi(t)\in\mathbb{R}^n$~--- вектор регрессора, $\theta^\star\in\mathbb{R}^n$~--- истинный вектор параметров, $v(t)$~--- помеха. В алгоритмах адаптивной идентификации ключевую роль играет условие \emph{неисчезающего возбуждения} (persistent excitation)
+\begin{equation}
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau \;\geq\; \alpha I,
+    \qquad \forall t,\quad T>0,\ \alpha>0,
+    \label{eq:PE}
+\end{equation}
+где $I$~--- единичная матрица размера $n\times n$.
+
+\subsection*{Почему левая часть~\eqref{eq:PE}~--- это матрица}
+
+Вектор регрессора имеет вид
+\[
+    \varphi(t) =
+    \begin{bmatrix}
+        \varphi_1(t)\\
+        \vdots      \\
+        \varphi_n(t)
+    \end{bmatrix}
+    \in\mathbb{R}^n.
+\]
+Тогда произведение $\varphi(\tau)\varphi^\top(\tau)$~--- это \emph{внешнее произведение} вектора на себя:
+\[
+    \varphi(\tau)\varphi^\top(\tau)
+    =
+    \begin{bmatrix}
+        \varphi_1(\tau)\\
+        \vdots\\
+        \varphi_n(\tau)
+    \end{bmatrix}
+    \begin{bmatrix}
+        \varphi_1(\tau) & \dots & \varphi_n(\tau)
+    \end{bmatrix}
+    =
+    \bigl[\varphi_i(\tau)\varphi_j(\tau)\bigr]_{i,j=1}^n.
+\]
+Каждый элемент этой матрицы есть скаляр $\varphi_i(\tau)\varphi_j(\tau)$, поэтому
+\[
+    \varphi(\tau)\varphi^\top(\tau)\in\mathbb{R}^{n\times n}.
+\]
+Интегрирование по времени в~\eqref{eq:PE} выполняется \emph{покомпонентно}:
+\[
+    \left(\int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau\right)_{ij}
+    =
+    \int_{t}^{t+T} \varphi_i(\tau)\varphi_j(\tau)\,d\tau.
+\]
+То есть мы интегрируем каждый элемент матрицы по отдельности и снова получаем матрицу размера $n\times n$. Таким образом,
+\[
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau \in \mathbb{R}^{n\times n},
+\]
+поэтому сравнение в~\eqref{eq:PE} является именно \emph{матричным} неравенством.
+
+Отметим также, что для любого фиксированного $\tau$ матрица
+$\varphi(\tau)\varphi^\top(\tau)$ является симметричной и неотрицательно
+определённой (positive semi-definite), так как
+\[
+    x^\top\varphi(\tau)\varphi^\top(\tau)x
+    = \bigl(\varphi^\top(\tau)x\bigr)^2 \ge 0
+    \qquad \forall x\in\mathbb{R}^n.
+\]
+Интеграл суммы таких матриц также остаётся симметричной неотрицательно определённой матрицей.
+
+\subsection*{Смысл неравенства матриц в~\eqref{eq:PE}}
+
+Запись
+\[
+    A \;\geq\; B
+\]
+для симметричных матриц $A,B\in\mathbb{R}^{n\times n}$ понимается в смысле \emph{положительной полуопределённости} разности:
+\[
+    A \ge B
+    \quad\Longleftrightarrow\quad
+    A-B \text{ неотрицательно определена}
+    \quad\Longleftrightarrow\quad
+    x^\top(A-B)x \ge 0,\ \forall x\in\mathbb{R}^n.
+\]
+Если же дополнительно выполняется
+$x^\top(A-B)x>0$ для всех ненулевых $x\neq0$, то матрица $A-B$
+\emph{положительно определена} и пишут $A>B$.
+
+Применяя это к условию~\eqref{eq:PE}, получаем
+\[
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau \;\geq\; \alpha I
+    \quad\Longleftrightarrow\quad
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau - \alpha I
+    \text{ неотрицательно определена}.
+\]
+Эквивалентная запись через квадратичную форму:
+\begin{equation}
+    x^\top\!\left(
+        \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau
+        - \alpha I
+    \right)\!x
+    \;\geq\; 0
+    \qquad \forall x\in\mathbb{R}^n,\ \forall t.
+    \label{eq:PE-quadratic}
+\end{equation}
+Вынесем $x$ из интеграла:
+\[
+    x^\top\!\left(
+        \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau
+    \right)\!x
+    =
+    \int_{t}^{t+T} x^\top\varphi(\tau)\varphi^\top(\tau)x\,d\tau
+    =
+    \int_{t}^{t+T} \bigl(\varphi^\top(\tau)x\bigr)^2 d\tau.
+\]
+Тогда неравенство~\eqref{eq:PE-quadratic} можно переписать как
+\[
+    \int_{t}^{t+T} \bigl(\varphi^\top(\tau)x\bigr)^2 d\tau
+    \;\geq\; \alpha \,\|x\|^2
+    \qquad \forall x,\ \forall t.
+\]
+То есть для любого ненулевого направления $x$ энергия скалярного сигнала
+$\varphi^\top(\tau)x$ на любом окне длины $T$ ограничена снизу положительной постоянной, пропорциональной $\|x\|^2$. Именно это интерпретируется как \emph{неисчезающее возбуждение}: регрессор $\varphi(t)$ не ``забывает'' ни одно направление в пространстве параметров.
+
+\subsection*{Связь с положительной определённостью}
+
+Из линейной алгебры известно, что для симметричной матрицы $M$ следующие условия эквивалентны:
+\begin{enumerate}
+    \item $M$ положительно определена;
+    \item все собственные значения $M$ положительны;
+    \item $x^\top M x > 0$ для всех $x\neq 0$.
+\end{enumerate}
+Если переписать~\eqref{eq:PE} как
+\[
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau - \alpha I \;\ge 0,
+\]
+то требование ``$\ge$'' означает именно неотрицательную (а в усиленной форме --- положительную) определённость этой разности. Говоря словами преподавателя: \emph{``матрица слева $\ge$ матрицы справа'' эквивалентно утверждению, что матрица
+    $\displaystyle
+    \int_{t}^{t+T} \varphi(\tau)\varphi^\top(\tau)\,d\tau - \alpha I
+    $
+    положительно (или по крайней мере неотрицательно) определена.}
+
+Такое условие гарантирует, что информация, содержащаяся в регрессоре $\varphi(t)$, ``достаточно богата'', и алгоритмы оценивания параметров действительно сходятся к истинному значению $\theta^\star$, а не просто обеспечивают исчезновение ошибки по выходу.
+
+\end{document}
+
